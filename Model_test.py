@@ -69,7 +69,7 @@ print('image_shape = ', conf['image_shape'])
 # print('desired_depth = ', conf['desired_depth'])
 
 # Wskaźnik uczenia
-conf['learning_rate'] = 1e-3
+conf['learning_rate'] = 1e-1
 print('learning_rate = ', conf['learning_rate'])
 
 # Liczba próbek treningowych na epokę
