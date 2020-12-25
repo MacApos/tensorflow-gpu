@@ -250,8 +250,7 @@ def load_and_normalise_dicom(path):
     return dicom_img
 
 
-def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-            color_inverse=True, flip=True):
+def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25, flip=True):
     height, width = image.shape
     if rescale_factor_range:
         if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1]\
@@ -291,12 +290,6 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
         offset = np.array([[np.random.randint(-shift, shift)], [np.random.randint(-shift, shift)]])
         img = ndimage.interpolation.shift(img, (int(offset[0]), int(offset[1])), mode='nearest')
 
-    if color_inverse:
-        color_inverse_factor = np.random.randint(-1, 2)
-        while color_inverse_factor == 0:
-            color_inverse_factor = np.random.randint(-1, 2)
-        img = img*color_inverse_factor
-
     if flip:
         flip_factor = np.random.randint(0, 2)
         if flip_factor:
@@ -306,12 +299,31 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
 
     return img
 
-
+x = 4
+y = 4
+i = 0
+scan_list = []
 while True:
     patient = r'E:\Dane\input\sample_images\{}'.format(np.random.choice(os.listdir(base_dir)))
     path = os.path.join(patient, np.random.choice(os.listdir(patient)))
     arr = load_and_normalise_dicom(path)
-    scan = augment(arr, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-                   color_inverse=True, flip=True)
+    scan = augment(arr, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25, flip=True)
     plt.imshow(scan, plt.cm.gray)
     plt.show()
+    plot_add = int(input())
+    if plot_add == 1:
+        scan_list.append(scan)
+        i += 1
+        print(i, 'scan added')
+    if i == x*y:
+        break
+
+fig, plot = plt.subplots(x, y, figsize=(15, 15))
+for idx, sc in enumerate(scan_list):
+    plot[idx // y, idx % y].axis('off')
+    plot[idx // y, idx % y].imshow(sc, cmap='gray')
+fname = r'F:\Nowy folder\7\Praca inżynierska\Zdjęcia\Nowy folder\Figure_14.jpg'
+plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w', orientation='portrait')
+plt.show()
+
+
