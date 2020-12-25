@@ -50,7 +50,7 @@ conf['save_model'] = 1
 conf['train_valid_fraction'] = 0.7
 
 # Rozmiar wsadu
-conf['batch_size'] = 64
+conf['batch_size'] = 128
 print('batch_size = ', conf['batch_size'])
 
 # Liczba epok
@@ -143,7 +143,6 @@ train_csv_table = pd.read_csv('/home/student/E/{}/input/stage1_labels_train.csv'
 #         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
 #     return dicom_img
 
-
 def load_and_normalise_dicom(path, x, y):
     dicom1 = dicom.read_file(path)
     dicom_img = dicom1.pixel_array
@@ -183,7 +182,7 @@ def get_train_single_fold(train_data, fraction):
 
 
 def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-            color_inverse=False, flip=True):
+            color_inverse=True, flip=True):
     height, width = image.shape
     if rescale_factor_range:
         if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1]\
@@ -315,10 +314,10 @@ def CNN():
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Flatten())
@@ -394,7 +393,7 @@ def create_model_and_plots():
     print('Sample train: {}, Sample valid: {}'.format(steps_per_epoch, validation_steps))
     # print('Sample train: {}, Sample valid: {}'.format(conf['samples_train_per_epoch'],
     #                                                   conf['samples_valid_per_epoch']))
-    start=time.time()
+    start = time.time()
     history = model.fit_generator(generator=batch_generator_train(train_files, train_csv_table,
                                                                   conf['batch_size'], do_aug=True),
                                   steps_per_epoch=steps_per_epoch,
@@ -405,7 +404,6 @@ def create_model_and_plots():
                                   validation_steps=validation_steps,
                                   # validation_steps=conf['samples_valid_per_epoch'],
                                   verbose=1)
-
     # callbacks = callbacks
     end = time.time()
     print(end-start)
@@ -431,6 +429,35 @@ def create_model_and_plots():
     plt.legend()
 
     plt.show()
+
+    plt.subplot(211)
+    plt.plot(epochs, loss, marker='o')
+    plt.xlabel('Strata trenowania')
+    plt.ylabel('Epoki')
+    plt.grid(True)
+
+    plt.subplot(212)
+    plt.plot(epochs, val_loss, marker='o')
+    plt.xlabel('Strata walidacji')
+    plt.ylabel('Epoki')
+    plt.grid(True)
+
+    plt.show()
+
+    plt.subplot(211)
+    plt.plot(epochs, accuracy, marker='o')
+    plt.xlabel('Strata trenowania')
+    plt.ylabel('Epoki')
+    plt.grid(True)
+
+    plt.subplot(212)
+    plt.plot(epochs, val_accuracy, marker='o')
+    plt.xlabel('Strata walidacji')
+    plt.ylabel('Epoki')
+    plt.grid(True)
+
+    plt.show()
+
 
     return model
 
