@@ -50,7 +50,7 @@ conf['save_model'] = 1
 conf['train_valid_fraction'] = 0.7
 
 # Rozmiar wsadu
-conf['batch_size'] = 64
+conf['batch_size'] = 128
 print('batch_size = ', conf['batch_size'])
 
 # Liczba epok
@@ -86,7 +86,7 @@ conf['level_2_filters'] = 8
 conf['dense_layer_size'] = 128
 conf['dropout_value'] = 0.5
 
-data_dir='Dane'
+data_dir = 'Dane'
 
 """
 Do utworzenia zboru testowego można użyć poniższej funkcji.
@@ -182,8 +182,7 @@ def get_train_single_fold(train_data, fraction):
     return train_list, valid_list
 
 
-def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-            color_inverse=False, flip=True):
+def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25, flip=True):
     height, width = image.shape
     if rescale_factor_range:
         if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1]\
@@ -223,12 +222,6 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
         offset = np.array([[np.random.randint(-shift, shift)], [np.random.randint(-shift, shift)]])
         img = ndimage.interpolation.shift(img, (int(offset[0]), int(offset[1])), mode='nearest')
 
-    if color_inverse:
-        color_inverse_factor = np.random.randint(-1, 2)
-        while color_inverse_factor == 0:
-            color_inverse_factor = np.random.randint(-1, 2)
-        img = img*color_inverse_factor
-
     if flip:
         flip_factor = np.random.randint(0, 2)
         if flip_factor:
@@ -239,7 +232,7 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
     return img
 
 
-# """
+"""
 train_patients, valid_patients = get_train_single_fold(train_csv_table, conf['train_valid_fraction'])
 desired_depth = 30
 train_files = []
@@ -271,7 +264,7 @@ print(len(valid_files))
 batch_size = conf['batch_size']
 
 do_aug = False
-# """
+"""
 
 
 def batch_generator_train(files, train_csv_table, batch_size, do_aug=True):
@@ -286,7 +279,7 @@ def batch_generator_train(files, train_csv_table, batch_size, do_aug=True):
             image = load_and_normalise_dicom(f, conf["image_shape"][0], conf["image_shape"][0])
             if do_aug:
                 image = augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-                                color_inverse=True, flip=True)
+                                flip=True)
             # print('Normalising...')
             patient_id = os.path.basename(os.path.dirname(f))
             is_cancer = train_csv_table.loc[train_csv_table['id'] == patient_id]['cancer'].values[0]
@@ -315,10 +308,10 @@ def CNN():
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Flatten())
@@ -405,9 +398,7 @@ def create_model_and_plots():
                                   validation_steps=validation_steps,
                                   # validation_steps=conf['samples_valid_per_epoch'],
                                   verbose=1)
-
     # callbacks = callbacks
-
     end = time.time()
     print(end-start)
     plt.rcParams.update({'font.size': 20})
@@ -441,6 +432,20 @@ def create_model_and_plots():
 
     plt.subplot(212)
     plt.plot(epochs, val_loss, marker='o')
+    plt.xlabel('Strata walidacji')
+    plt.ylabel('Epoki')
+    plt.grid(True)
+
+    plt.show()
+
+    plt.subplot(211)
+    plt.plot(epochs, accuracy, marker='o')
+    plt.xlabel('Strata trenowania')
+    plt.ylabel('Epoki')
+    plt.grid(True)
+
+    plt.subplot(212)
+    plt.plot(epochs, val_accuracy, marker='o')
     plt.xlabel('Strata walidacji')
     plt.ylabel('Epoki')
     plt.grid(True)
