@@ -9,12 +9,6 @@ from skimage.segmentation import clear_border
 from skimage.measure import regionprops, label
 from skimage.morphology import disk, binary_erosion, binary_closing
 
-lung = dicom.read_file(r'F:\Test2\input\sample_images\026be5d5e652b6a7488669d884ebe297\c2403098843687cdedb06c5d0ea74482.dcm')
-slice = lung.pixel_array
-slice[slice == -2000] = 0
-# plt.imshow(slice, cmap='gray')
-# plt.show()
-
 
 def load_and_normalise_dicom(path, x, y):
     dicom1 = dicom.read_file(path)
@@ -42,19 +36,13 @@ def load_and_normalise_dicom(path, x, y):
     # dicom_img[dicom_img < 604] = 0
     if dicom_img.shape != (x, y):
         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
-    # plt.imshow(dicom_img, cmap=plt.cm.gray)
-    # plt.show()
     return dicom_img
 
 
-patient = 'c2403098843687cdedb06c5d0ea74482.dcm'
-patient_dir = r'F:\Test2\input\sample_images\026be5d5e652b6a7488669d884ebe297'
-
-# patient = '9840d385037d9723100f0d0e14858253.dcm'
-# patient_dir = r'E:\Test\input\sample_images\2a20e4a4e6411f72374fdffebabfc235'
+patient = 'd3d08f2ed5742e96f738e7cdd73f8e8d.dcm'
+patient_dir = r'E:\Dane\input\sample_images\2a20e4a4e6411f72374fdffebabfc235'
 path = os.path.join(patient_dir, patient)
-# load_and_normalise_dicom(path, 160, 160)
-
+base_fname = r'C:\Users\Maciej\Desktop\Nowy folder (2)'
 index = os.listdir(patient_dir).index(patient)
 print(index)
 
@@ -79,7 +67,6 @@ def plot_ct_scan2(scan):
         print(i)
         plot[i % x, i // x].axis('off')
         plot[i % x, i // x].imshow(scan[i], cmap=plt.cm.bone)
-
     plt.show()
 
 
@@ -101,15 +88,10 @@ def get_segmneted_lungs(img, plot=False):
 
     areas = [r.area for r in regionprops(label_image)]
     areas.sort()
-    """Powierzchnie obszarów są dodawane do listy i sortowane od najmniejszej do największej. jeżeli w liście będzie więcej
-    niż 2 elementy to dla każdeg, który będzie mniejszy niż dwa największej obszary ustawia ich wszystkie są ustawiane jako 0, w efekcie stają
-    się nie widoczne na czarnym tle."""
-    print(len(areas))
     if len(areas) > 2:
         for region in regionprops(label_image):
             if region.area < areas[-2]:
                 for coordinates in region.coords:
-                    print(coordinates)
                     label_image[coordinates[0], coordinates[1]] = 0
     binary2 = label_image > 0
 
@@ -144,28 +126,28 @@ def get_segmneted_lungs(img, plot=False):
         plots[6].imshow(binary5, cmap=plt.cm.bone)
         plots[7].axis('off')
         plots[7].imshow(img, cmap=plt.cm.bone)
-        fname = r'C:\Users\Maciej\Desktop\Nowy folder (2)\0'
-        plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w', orientation='portrait')
+        fname = os.path.join(base_fname, '0')
+        # plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w', orientation='portrait')
         plt.show()
         # img = cv2.resize(img, (160, 160), interpolation=cv2.INTER_CUBIC)
         # plt.imshow(img, cmap=plt.cm.gray)
         # plt.show()
 
         for idx, val in enumerate((binary1, cleared, label_image, binary2, binary3, binary4, edges, binary5, img)):
-            fname = r'C:\Users\Maciej\Desktop\Nowy folder (2)\{}'.format(idx+2)
+            # fname = os.path.join(base_fname, idx+2)
             plt.imshow(val, cmap=plt.cm.gray)
-            plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w', orientation='portrait')
+            # plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w', orientation='portrait')
             plt.show()
 
     return img
 
 
-fname = r'C:\Users\Maciej\Desktop\Nowy folder (2)\1'
+fname = os.path.join(base_fname, '1')
 img = ct_scan[0]
 plt.imshow(img, cmap=plt.cm.gray)
-plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w', orientation='portrait')
+# plt.savefig(fname, dpi=None, facecolor='w', edgecolor='w', orientation='portrait')
 get_segmneted_lungs(img, plot=True)
-#
+
 #
 # def segment_lung_from_ct_scan(ct_scan):
 #     return np.asarray([get_segmneted_lungs(slice) for slice in ct_scan])

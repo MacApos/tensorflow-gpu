@@ -183,7 +183,7 @@ def get_train_single_fold(train_data, fraction):
 
 
 def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-            color_inverse=True, flip=True):
+            color_inverse=False, flip=True):
     height, width = image.shape
     if rescale_factor_range:
         if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1]\
