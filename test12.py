@@ -19,7 +19,7 @@ def load_and_normalise_dicom(path):
     mx = dicom_img.max()
     if (mx - mn) != 0:
         dicom_img = (dicom_img - mn) / (mx - mn)
-        print(mn, mx, (mx - mn))
+        print(mn, mx, (mx - mn), '\n', dicom_img)
     else:
         dicom_img[:, :] = 0
     plt.subplot(212)
