@@ -26,8 +26,6 @@ def load_and_normalise_dicom(path):
     plt.imshow(dicom_img, cmap='gray')
     plt.axis('off')
     plt.show()
-    # if dicom_img.shape != (x, y):
-    #     dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
     return dicom_img
 
 
