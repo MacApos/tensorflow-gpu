@@ -130,47 +130,48 @@ create_test_data(train_csv_table, 100, move_back=False)
 train_csv_table = pd.read_csv(r'E:\{}\input\stage1_labels_train.csv'.format(data_dir))
 
 
-# def load_and_normalise_dicom(path, x, y):
-#     dicom1 = dicom.read_file(path)
-#     dicom_img = dicom1.pixel_array.astype(np.float64)
-#     mn = dicom_img.min()
-#     mx = dicom_img.max()
-#     if (mn - mx) != 0:
-#         dicom_img = (dicom_img - mn)/(mx - mn)
-#     else:
-#         dicom_img[:, :] = 0
-#     if dicom_img.shape != (x, y):
-#         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
-#     return dicom_img
-
-
 def load_and_normalise_dicom(path, x, y):
     dicom1 = dicom.read_file(path)
     dicom_img = dicom1.pixel_array
     dicom_img[dicom_img == -2000] = 0
-    binary = dicom_img < 604
-    cleared = clear_border(binary)
-    label_image = label(cleared)
-    areas = [r.area for r in regionprops(label_image)]
-    areas.sort()
-    if len(areas) > 2:
-        for region in regionprops(label_image):
-            if region.area < areas[-2]:
-                for coordinates in region.coords:
-                    label_image[coordinates[0], coordinates[1]] = 0
-    binary = label_image > 0
-    selem = disk(2)
-    binary = binary_erosion(binary, selem)
-    selem = disk(10)
-    binary = binary_closing(binary, selem)
-    edges = roberts(binary)
-    binary = ndimage.binary_fill_holes(edges)
-    get_high_value = binary == 0
-    dicom_img[get_high_value] = 0
-    # dicom_img[dicom_img < 604] = 0
+    mn = dicom_img.min()
+    mx = dicom_img.max()
+    if (mn - mx) != 0:
+        dicom_img = (dicom_img - mn)/(mx - mn)
+    else:
+        dicom_img[:, :] = 0
     if dicom_img.shape != (x, y):
         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
     return dicom_img
+
+
+# def load_and_normalise_dicom(path, x, y):
+#     dicom1 = dicom.read_file(path)
+#     dicom_img = dicom1.pixel_array
+#     dicom_img[dicom_img == -2000] = 0
+#     binary = dicom_img < 604
+#     cleared = clear_border(binary)
+#     label_image = label(cleared)
+#     areas = [r.area for r in regionprops(label_image)]
+#     areas.sort()
+#     if len(areas) > 2:
+#         for region in regionprops(label_image):
+#             if region.area < areas[-2]:
+#                 for coordinates in region.coords:
+#                     label_image[coordinates[0], coordinates[1]] = 0
+#     binary = label_image > 0
+#     selem = disk(2)
+#     binary = binary_erosion(binary, selem)
+#     selem = disk(10)
+#     binary = binary_closing(binary, selem)
+#     edges = roberts(binary)
+#     binary = ndimage.binary_fill_holes(edges)
+#     get_high_value = binary == 0
+#     dicom_img[get_high_value] = 0
+#     # dicom_img[dicom_img < 604] = 0
+#     if dicom_img.shape != (x, y):
+#         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
+#     return dicom_img
 
 
 def get_train_single_fold(train_data, fraction):

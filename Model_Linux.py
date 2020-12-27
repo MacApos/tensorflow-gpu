@@ -54,7 +54,7 @@ conf['batch_size'] = 128
 print('batch_size = ', conf['batch_size'])
 
 # Liczba epok
-conf['nb_epochs'] = 10
+conf['nb_epochs'] = 2
 print('nb_epochs = ', conf['nb_epochs'])
 
 # Liczba epok bez poprawy wyniku, po których trenowanie się zakończy.
@@ -130,47 +130,48 @@ create_test_data(train_csv_table, 100, move_back=False)
 train_csv_table = pd.read_csv('/home/student/E/{}/input/stage1_labels_train.csv'.format(data_dir))
 
 
-# def load_and_normalise_dicom(path, x, y):
-#     dicom1 = dicom.read_file(path)
-#     dicom_img = dicom1.pixel_array.astype(np.float64)
-#     mn = dicom_img.min()
-#     mx = dicom_img.max()
-#     if (mn - mx) != 0:
-#         dicom_img = (dicom_img - mn)/(mx - mn)
-#     else:
-#         dicom_img[:, :] = 0
-#     if dicom_img.shape != (x, y):
-#         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
-#     return dicom_img
-
-
 def load_and_normalise_dicom(path, x, y):
     dicom1 = dicom.read_file(path)
     dicom_img = dicom1.pixel_array
     dicom_img[dicom_img == -2000] = 0
-    binary = dicom_img < 604
-    cleared = clear_border(binary)
-    label_image = label(cleared)
-    areas = [r.area for r in regionprops(label_image)]
-    areas.sort()
-    if len(areas) > 2:
-        for region in regionprops(label_image):
-            if region.area < areas[-2]:
-                for coordinates in region.coords:
-                    label_image[coordinates[0], coordinates[1]] = 0
-    binary = label_image > 0
-    selem = disk(2)
-    binary = binary_erosion(binary, selem)
-    selem = disk(10)
-    binary = binary_closing(binary, selem)
-    edges = roberts(binary)
-    binary = ndimage.binary_fill_holes(edges)
-    get_high_value = binary == 0
-    dicom_img[get_high_value] = 0
-    # dicom_img[dicom_img < 604] = 0
+    mn = dicom_img.min()
+    mx = dicom_img.max()
+    if (mx - mn) != 0:
+        dicom_img = (dicom_img - mn)/(mx - mn)
+    else:
+        dicom_img[:, :] = 0
     if dicom_img.shape != (x, y):
         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
     return dicom_img
+
+
+# def load_and_normalise_dicom(path, x, y):
+#     dicom1 = dicom.read_file(path)
+#     dicom_img = dicom1.pixel_array
+#     dicom_img[dicom_img == -2000] = 0
+#     binary = dicom_img < 604
+#     cleared = clear_border(binary)
+#     label_image = label(cleared)
+#     areas = [r.area for r in regionprops(label_image)]
+#     areas.sort()
+#     if len(areas) > 2:
+#         for region in regionprops(label_image):
+#             if region.area < areas[-2]:
+#                 for coordinates in region.coords:
+#                     label_image[coordinates[0], coordinates[1]] = 0
+#     binary = label_image > 0
+#     selem = disk(2)
+#     binary = binary_erosion(binary, selem)
+#     selem = disk(10)
+#     binary = binary_closing(binary, selem)
+#     edges = roberts(binary)
+#     binary = ndimage.binary_fill_holes(edges)
+#     get_high_value = binary == 0
+#     dicom_img[get_high_value] = 0
+#     # dicom_img[dicom_img < 604] = 0
+#     if dicom_img.shape != (x, y):
+#         dicom_img = cv2.resize(dicom_img, (x, y), interpolation=cv2.INTER_CUBIC)
+#     return dicom_img
 
 
 def get_train_single_fold(train_data, fraction):
@@ -380,10 +381,10 @@ def create_model_and_plots():
     ]
 
     print('Fit model')
-    # steps_per_epoch = len(train_files)//conf['batch_size']
-    # validation_steps = len(train_files)//conf['batch_size']
-    steps_per_epoch = conf['samples_train_per_epoch']//conf['batch_size']
-    validation_steps = conf['samples_valid_per_epoch']//conf['batch_size']
+    steps_per_epoch = len(train_files)//conf['batch_size']
+    validation_steps = len(valid_files)//conf['batch_size']
+    # steps_per_epoch = conf['samples_train_per_epoch']//conf['batch_size']
+    # validation_steps = conf['samples_valid_per_epoch']//conf['batch_size']
     print('Sample train: {}, Sample valid: {}'.format(steps_per_epoch, validation_steps))
     # print('Sample train: {}, Sample valid: {}'.format(conf['samples_train_per_epoch'],
     #                                                   conf['samples_valid_per_epoch']))
@@ -440,13 +441,13 @@ def create_model_and_plots():
 
     plt.subplot(211)
     plt.plot(epochs, accuracy, marker='o')
-    plt.xlabel('Strata trenowania')
+    plt.xlabel('Czułość trenowania')
     plt.ylabel('Epoki')
     plt.grid(True)
 
     plt.subplot(212)
     plt.plot(epochs, val_accuracy, marker='o')
-    plt.xlabel('Strata walidacji')
+    plt.xlabel('Czułość walidacji')
     plt.ylabel('Epoki')
     plt.grid(True)
 
@@ -478,4 +479,4 @@ if __name__ == '__main__':
     model = create_model_and_plots()
     if conf['save_model'] == 1:
         model.save('dsb.h5')
-    # create_submission_model(model)
+    create_submission_model(model)
