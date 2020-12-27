@@ -10,7 +10,7 @@ base_dir = r'E:\Dane\input\sample_images'
 
 def load_and_normalise_dicom(path):
     dicom1 = dicom.read_file(path)
-    dicom_img = dicom1.pixel_array
+    dicom_img = dicom1.pixel_array.astype(np.float64)
     plt.subplot(211)
     plt.imshow(dicom_img, cmap='gray')
     plt.axis('off')
@@ -32,5 +32,7 @@ def load_and_normalise_dicom(path):
 while True:
     patient = os.path.join(base_dir, np.random.choice(os.listdir(base_dir)))
     path = os.path.join(patient, np.random.choice(os.listdir(patient)))
-    load_and_normalise_dicom(path)
-
+    scan = load_and_normalise_dicom(path)
+    plt.imshow(scan, cmap='gray')
+    plt.axis('off')
+    plt.show()
