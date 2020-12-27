@@ -183,7 +183,8 @@ def get_train_single_fold(train_data, fraction):
     return train_list, valid_list
 
 
-def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25, flip=True):
+def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25, color_inverse=True,
+            flip=True):
     height, width = image.shape
     if rescale_factor_range:
         if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1]\
@@ -222,6 +223,12 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
     if shift:
         offset = np.array([[np.random.randint(-shift, shift)], [np.random.randint(-shift, shift)]])
         img = ndimage.interpolation.shift(img, (int(offset[0]), int(offset[1])), mode='nearest')
+
+    if color_inverse:
+        color_inverse_factor = np.random.randint(-1, 2)
+        while color_inverse_factor == 0:
+            color_inverse_factor = np.random.randint(-1, 2)
+        img = img*color_inverse_factor
 
     if flip:
         flip_factor = np.random.randint(0, 2)
@@ -280,7 +287,7 @@ def batch_generator_train(files, train_csv_table, batch_size, do_aug=True):
             image = load_and_normalise_dicom(f, conf["image_shape"][0], conf["image_shape"][0])
             if do_aug:
                 image = augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-                                flip=True)
+                                color_inverse=True, flip=True)
             # print('Normalising...')
             patient_id = os.path.basename(os.path.dirname(f))
             is_cancer = train_csv_table.loc[train_csv_table['id'] == patient_id]['cancer'].values[0]
