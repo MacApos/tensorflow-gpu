@@ -54,7 +54,7 @@ conf['batch_size'] = 128
 print('batch_size = ', conf['batch_size'])
 
 # Liczba epok
-conf['nb_epochs'] = 2
+conf['nb_epochs'] = 1
 print('nb_epochs = ', conf['nb_epochs'])
 
 # Liczba epok bez poprawy wyniku, po których trenowanie się zakończy.
@@ -73,11 +73,11 @@ conf['learning_rate'] = 1e-3
 print('learning_rate = ', conf['learning_rate'])
 
 # Liczba próbek treningowych na epokę
-conf['samples_train_per_epoch'] = 20480
+conf['samples_train_per_epoch'] = 2
 print('samples_train_per_epoch = ', conf['samples_train_per_epoch'])
 
 # Liczba próbek walidacyjnych na epokę
-conf['samples_valid_per_epoch'] = 14336
+conf['samples_valid_per_epoch'] = 1
 print('samples_valid_per_epoch = ', conf['samples_valid_per_epoch'])
 
 # Parametry warstw
@@ -183,13 +183,14 @@ def get_train_single_fold(train_data, fraction):
     return train_list, valid_list
 
 
-def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25, flip=True):
+def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25, color_inverse=True,
+            flip=True):
     height, width = image.shape
     if rescale_factor_range:
-        if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1]\
+        if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1] \
                 < 0:
             raise TypeError('inappropriate rescale factor shape')
-        rescale_factor = np.random.random_sample()*(rescale_factor_range[1]-rescale_factor_range[0]) +\
+        rescale_factor = np.random.random_sample() * (rescale_factor_range[1] - rescale_factor_range[0]) + \
                          rescale_factor_range[0]
         new_height = round(height * rescale_factor)
         new_width = round(height * rescale_factor)
@@ -197,17 +198,18 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
             img = np.zeros_like(image)
             row = (height - new_height) // 2
             col = (width - new_width) // 2
-            img[row:row+new_height, col:col+new_width] = ndimage.zoom(image, (float(rescale_factor),
-                                                                              float(rescale_factor)),
-                                                                      mode='nearest')[0:new_height, 0:new_width]
+            img[row:row + new_height, col:col + new_width] = ndimage.zoom(image, (float(rescale_factor),
+                                                                                  float(rescale_factor)),
+                                                                          mode='nearest')[0:new_height, 0:new_width]
         elif rescale_factor > 1.0:
             row = (new_height - height) // 2
             col = (new_width - width) // 2
-            img = ndimage.zoom(image[row:row+new_height, col:col+new_width], (float(rescale_factor),
-                                                                              float(rescale_factor)), mode='nearest')
+            img = ndimage.zoom(image[row:row + new_height, col:col + new_width], (float(rescale_factor),
+                                                                                  float(rescale_factor)),
+                               mode='nearest')
             extra_hight = (img.shape[0] - height) // 2
             extra_width = (img.shape[1] - width) // 2
-            img = img[extra_hight:extra_hight+height, extra_width:extra_width+width]
+            img = img[extra_hight:extra_hight + height, extra_width:extra_width + width]
         else:
             img = image
     else:
@@ -216,12 +218,19 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
     if rotation_angle_range:
         if rotation_angle_range[0] >= rotation_angle_range[1]:
             raise TypeError('inappropriate rotation angle factor shape')
-        angel = np.random.random_sample()*(rotation_angle_range[1]-rotation_angle_range[0])+rotation_angle_range[0]
+        angel = np.random.random_sample() * (rotation_angle_range[1] - rotation_angle_range[0]) + rotation_angle_range[
+            0]
         img = ndimage.rotate(img, angel, reshape=False)
 
     if shift:
         offset = np.array([[np.random.randint(-shift, shift)], [np.random.randint(-shift, shift)]])
         img = ndimage.interpolation.shift(img, (int(offset[0]), int(offset[1])), mode='nearest')
+
+    if color_inverse:
+        color_inverse_factor = np.random.randint(-1, 2)
+        while color_inverse_factor == 0:
+            color_inverse_factor = np.random.randint(-1, 2)
+        img = img * color_inverse_factor
 
     if flip:
         flip_factor = np.random.randint(0, 2)
@@ -280,7 +289,7 @@ def batch_generator_train(files, train_csv_table, batch_size, do_aug=True):
             image = load_and_normalise_dicom(f, conf["image_shape"][0], conf["image_shape"][0])
             if do_aug:
                 image = augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20), shift=25,
-                                flip=True)
+                                color_inverse=True, flip=True)
             # print('Normalising...')
             patient_id = os.path.basename(os.path.dirname(f))
             is_cancer = train_csv_table.loc[train_csv_table['id'] == patient_id]['cancer'].values[0]
@@ -391,13 +400,13 @@ def create_model_and_plots():
     start = time.time()
     history = model.fit_generator(generator=batch_generator_train(train_files, train_csv_table,
                                                                   conf['batch_size'], do_aug=True),
-                                  steps_per_epoch=steps_per_epoch,
-                                  # steps_per_epoch=conf['samples_train_per_epoch'],
+                                  # steps_per_epoch=steps_per_epoch,
+                                  steps_per_epoch=conf['samples_train_per_epoch'],
                                   epochs=conf['nb_epochs'],
                                   validation_data=batch_generator_train(valid_files, train_csv_table,
                                                                         conf['batch_size'], do_aug=False),
-                                  validation_steps=validation_steps,
-                                  # validation_steps=conf['samples_valid_per_epoch'],
+                                  # validation_steps=validation_steps,
+                                  validation_steps=conf['samples_valid_per_epoch'],
                                   verbose=1)
     # callbacks = callbacks
     end = time.time()

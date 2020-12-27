@@ -69,7 +69,7 @@ print('image_shape = ', conf['image_shape'])
 # print('desired_depth = ', conf['desired_depth'])
 
 # Wskaźnik uczenia
-conf['learning_rate'] = 1e-1
+conf['learning_rate'] = 1e-3
 print('learning_rate = ', conf['learning_rate'])
 
 # Liczba próbek treningowych na epokę
@@ -187,10 +187,10 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
             flip=True):
     height, width = image.shape
     if rescale_factor_range:
-        if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1]\
+        if rescale_factor_range[0] > rescale_factor_range[1] or rescale_factor_range[0] < 0 or rescale_factor_range[1] \
                 < 0:
             raise TypeError('inappropriate rescale factor shape')
-        rescale_factor = np.random.random_sample()*(rescale_factor_range[1]-rescale_factor_range[0]) +\
+        rescale_factor = np.random.random_sample() * (rescale_factor_range[1] - rescale_factor_range[0]) + \
                          rescale_factor_range[0]
         new_height = round(height * rescale_factor)
         new_width = round(height * rescale_factor)
@@ -198,17 +198,18 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
             img = np.zeros_like(image)
             row = (height - new_height) // 2
             col = (width - new_width) // 2
-            img[row:row+new_height, col:col+new_width] = ndimage.zoom(image, (float(rescale_factor),
-                                                                              float(rescale_factor)),
-                                                                      mode='nearest')[0:new_height, 0:new_width]
+            img[row:row + new_height, col:col + new_width] = ndimage.zoom(image, (float(rescale_factor),
+                                                                                  float(rescale_factor)),
+                                                                          mode='nearest')[0:new_height, 0:new_width]
         elif rescale_factor > 1.0:
             row = (new_height - height) // 2
             col = (new_width - width) // 2
-            img = ndimage.zoom(image[row:row+new_height, col:col+new_width], (float(rescale_factor),
-                                                                              float(rescale_factor)), mode='nearest')
+            img = ndimage.zoom(image[row:row + new_height, col:col + new_width], (float(rescale_factor),
+                                                                                  float(rescale_factor)),
+                               mode='nearest')
             extra_hight = (img.shape[0] - height) // 2
             extra_width = (img.shape[1] - width) // 2
-            img = img[extra_hight:extra_hight+height, extra_width:extra_width+width]
+            img = img[extra_hight:extra_hight + height, extra_width:extra_width + width]
         else:
             img = image
     else:
@@ -217,7 +218,8 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
     if rotation_angle_range:
         if rotation_angle_range[0] >= rotation_angle_range[1]:
             raise TypeError('inappropriate rotation angle factor shape')
-        angel = np.random.random_sample()*(rotation_angle_range[1]-rotation_angle_range[0])+rotation_angle_range[0]
+        angel = np.random.random_sample() * (rotation_angle_range[1] - rotation_angle_range[0]) + rotation_angle_range[
+            0]
         img = ndimage.rotate(img, angel, reshape=False)
 
     if shift:
@@ -228,7 +230,7 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
         color_inverse_factor = np.random.randint(-1, 2)
         while color_inverse_factor == 0:
             color_inverse_factor = np.random.randint(-1, 2)
-        img = img*color_inverse_factor
+        img = img * color_inverse_factor
 
     if flip:
         flip_factor = np.random.randint(0, 2)
@@ -448,13 +450,13 @@ def create_model_and_plots():
 
     plt.subplot(211)
     plt.plot(epochs, accuracy, marker='o')
-    plt.xlabel('Strata trenowania')
+    plt.xlabel('Czułość trenowania')
     plt.ylabel('Epoki')
     plt.grid(True)
 
     plt.subplot(212)
     plt.plot(epochs, val_accuracy, marker='o')
-    plt.xlabel('Strata walidacji')
+    plt.xlabel('Czułość walidacji')
     plt.ylabel('Epoki')
     plt.grid(True)
 
@@ -486,4 +488,4 @@ if __name__ == '__main__':
     model = create_model_and_plots()
     if conf['save_model'] == 1:
         model.save('dsb.h5')
-    # create_submission_model(model)
+    create_submission_model(model)
