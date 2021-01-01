@@ -132,7 +132,7 @@ train_csv_table = pd.read_csv('/home/student/E/{}/input/stage1_labels_train.csv'
 
 def load_and_normalise_dicom(path, x, y):
     dicom1 = dicom.read_file(path)
-    dicom_img = dicom1.pixel_array
+    dicom_img = dicom1.pixel_array.astype(np.float64)
     dicom_img[dicom_img == -2000] = 0
     mn = dicom_img.min()
     mx = dicom_img.max()

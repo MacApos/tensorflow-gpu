@@ -132,7 +132,7 @@ train_csv_table = pd.read_csv(r'E:\{}\input\stage1_labels_train.csv'.format(data
 
 def load_and_normalise_dicom(path, x, y):
     dicom1 = dicom.read_file(path)
-    dicom_img = dicom1.pixel_array
+    dicom_img = dicom1.pixel_array.astype(np.float64)
     dicom_img[dicom_img == -2000] = 0
     mn = dicom_img.min()
     mx = dicom_img.max()
@@ -318,10 +318,10 @@ def CNN():
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
+    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
+    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Flatten())
