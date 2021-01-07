@@ -54,7 +54,7 @@ conf['batch_size'] = 128
 print('batch_size = ', conf['batch_size'])
 
 # Liczba epok
-conf['nb_epochs'] = 10
+conf['nb_epochs'] = 11
 print('nb_epochs = ', conf['nb_epochs'])
 
 # Liczba epok bez poprawy wyniku, po których trenowanie się zakończy.
@@ -318,8 +318,8 @@ def CNN():
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
     # model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     # model.add(layers.Conv2D(filters=conf['level_2_filters'], kernel_size=(3, 3), activation='relu'))
@@ -413,6 +413,7 @@ def create_model_and_plots():
     print(end-start)
     plt.rcParams.update({'font.size': 20})
     hist = pd.DataFrame(history.history)
+    hist.to_csv('hist.csv', index=False)
     epochs = range(1, len(hist['loss']) + 1)
     accuracy, val_accuracy, loss, val_loss = hist['specificity_at_sensitivity'], \
                                              hist['val_specificity_at_sensitivity'], hist['loss'], hist['val_loss']
