@@ -242,7 +242,7 @@ def augment(image, rescale_factor_range=(0.8, 1), rotation_angle_range=(-20, 20)
     return img
 
 
-"""
+# """
 train_patients, valid_patients = get_train_single_fold(train_csv_table, conf['train_valid_fraction'])
 desired_depth = 30
 train_files = []
@@ -274,7 +274,7 @@ print(len(valid_files))
 batch_size = conf['batch_size']
 
 do_aug = False
-"""
+# """
 
 
 def batch_generator_train(files, train_csv_table, batch_size, do_aug=True):
@@ -309,6 +309,11 @@ def batch_generator_train(files, train_csv_table, batch_size, do_aug=True):
             counter = 0
 
 
+# test = batch_generator_train(train_files, train_csv_table, batch_size, do_aug=True)
+# print(test)
+
+#
+#
 def CNN():
     model = Sequential()
     model.add(layers.Conv2D(filters=conf['level_1_filters'], kernel_size=(3, 3), activation='relu',
@@ -332,7 +337,7 @@ def CNN():
 
     model.compile(optimizer=optimizers.RMSprop(lr=conf['learning_rate']),
                   loss='binary_crossentropy',
-                  metrics=[tf.keras.metrics.SpecificityAtSensitivity(0.5)])
+                  metrics=[tf.keras.metrics.SensitivityAtSpecificity(0.5)])
 
     return model
 
